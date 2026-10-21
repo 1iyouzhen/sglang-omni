@@ -1,12 +1,6 @@
 # Qwen3 TTS
 
-[Qwen3-TTS-12Hz-Base](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base) is a discrete
-multi-codebook text-to-speech model from the Qwen team. It performs fast voice cloning from a
-short reference clip, supports 10 languages, and streams 24 kHz speech with low latency. The
-`12Hz` in the name refers to the codec **frame rate** (12 acoustic frames per second), not the
-playback sample rate. SGLang-Omni serves two checkpoints — `0.6B` and `1.7B` — through the same
-`preprocessing → tts_engine → vocoder` pipeline and the OpenAI-compatible `/v1/audio/speech`
-endpoint.
+[Qwen3-TTS-12Hz-Base](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base)is Qwen’s discrete multi-codebook TTS model that supports fast voice cloning from short reference audio and 10 languages. It is served by SGLang-Omni through a unified `preprocessing → tts_engine → vocoder` pipeline for both the 0.6B and 1.7B checkpoints, delivering low-latency 24 kHz streaming via the OpenAI-compatible `/v1/audio/speech` endpoint.
 
 ## Prerequisites
 
