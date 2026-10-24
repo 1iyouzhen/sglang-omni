@@ -520,7 +520,6 @@
                 <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-configuration">Server Configuration</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ascend-npu-baseline">Ascend NPU Baseline</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deterministic-inference">Deterministic Inference</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#overload-admission-policy">Overload / admission policy</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#server-readiness">Server Readiness</a></li>
@@ -602,32 +601,6 @@ sgl-omni<span class="w"> </span>serve<span class="w"> </span><span class="se">\<
 <span class="w">  </span>--port<span class="w"> </span><span class="m">8000</span>
 </pre></div>
 </div>
-<p>If you already have a pipeline config file, you can also pass <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">path/to/config.yaml</span></code>. When the config file contains <code class="docutils literal notranslate"><span class="pre">model_path</span></code>, <code class="docutils literal notranslate"><span class="pre">--model-path</span></code> is optional and can be used as an override.</p>
-<p>If your SGLang release supports serve backend plugins, the same server can be launched through the unified CLI:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sglang<span class="w"> </span>serve<span class="w"> </span>Qwen/Qwen3-TTS-12Hz-0.6B-Base<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model-type<span class="w"> </span>omni<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--port<span class="w"> </span><span class="m">8000</span>
-</pre></div>
-</div>
-<p>Config-only launches are also supported:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sglang<span class="w"> </span>serve<span class="w"> </span>--model-type<span class="w"> </span>omni<span class="w"> </span>--config<span class="w"> </span>path/to/config.yaml
-</pre></div>
-</div>
-<p>Replace <code class="docutils literal notranslate"><span class="pre">0.6B</span></code> with <code class="docutils literal notranslate"><span class="pre">1.7B</span></code> in the model ID to use the larger checkpoint. Both entry points also apply to other hardware backends.</p>
-<section id="ascend-npu-baseline">
-<h3>Ascend NPU Baseline<a class="headerlink" href="#ascend-npu-baseline" title="Link to this heading">#</a></h3>
-<p>The four NPU example configurations enable Talker graphs, asynchronous vocoder decoding, and incremental codec graphs. Custom NPU configurations default to synchronous decoding.</p>
-<p>Graph capture and replay were validated on Ascend 910 with SGLang 0.5.21, PyTorch 2.10.0, and torch_npu 2.10.0. The 0.6B Base configuration was validated at 16 concurrent requests; the other examples use <code class="docutils literal notranslate"><span class="pre">max_running_requests:</span> <span class="pre">1</span></code>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 0.6B Base</span>
-sgl-omni<span class="w"> </span>serve<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model-path<span class="w"> </span>Qwen/Qwen3-TTS-12Hz-0.6B-Base<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--config<span class="w"> </span>examples/configs/qwen3_tts_0_6b_npu.yaml<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--port<span class="w"> </span><span class="m">8000</span>
-</pre></div>
-</div>
-<p>Disable Talker graphs with <code class="docutils literal notranslate"><span class="pre">--tts_engine.engine.disable_cuda_graph</span> <span class="pre">true</span></code>, vocoder graphs with <code class="docutils literal notranslate"><span class="pre">--vocoder.factory.incremental_codec_cuda_graph</span> <span class="pre">false</span></code>, or asynchronous decoding with <code class="docutils literal notranslate"><span class="pre">--vocoder.factory.async_decode</span> <span class="pre">false</span></code>.</p>
-<p>The 0.6B and 1.7B configurations use different <code class="docutils literal notranslate"><span class="pre">mem_fraction_static</span></code> values. Tune memory on the target NPU before increasing <code class="docutils literal notranslate"><span class="pre">max_running_requests</span></code> or vocoder batch limits from the single-request baseline.</p>
-</section>
 <section id="deterministic-inference">
 <h3>Deterministic Inference<a class="headerlink" href="#deterministic-inference" title="Link to this heading">#</a></h3>
 <p>For byte-identical PCM across batch sizes with the same prompt, reference audio, and seed, enable deterministic inference in either Base checkpoint’s pipeline YAML (disabled by default):</p>
@@ -949,7 +922,7 @@ weights.</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">incremental_codec_cuda_graph</span></code>, <code class="docutils literal notranslate"><span class="pre">incremental_codec_compile</span></code>, <code class="docutils literal notranslate"><span class="pre">async_decode</span></code> and <code class="docutils literal notranslate"><span class="pre">followup_batch_wait_ms</span></code> are the individual switches. On one H100 80GB at 20 RPS (three client seeds, ~1200 requests each), the default path holds 0.6–2.3% of streams underrun vs 20.9% for the left-context decoder, with first playable audio at 55–58 ms vs 82–89 ms.</p>
 <p>Each stream holds one of <code class="docutils literal notranslate"><span class="pre">codec_state_slots</span></code> (default 64, matching default <code class="docutils literal notranslate"><span class="pre">max_running_requests</span></code>) while decoding; streams past the slots decode eagerly on the left-context path. At startup the vocoder logs the captured decode graphs and warns if slots are fewer than the streams it may hold at once: the engine’s <code class="docutils literal notranslate"><span class="pre">max_running_requests</span></code> when the vocoder shares its process, or that times the engine replicas when the vocoder runs in its own process (requests bind round-robin). Raise <code class="docutils literal notranslate"><span class="pre">--vocoder.factory.codec_state_slots</span></code> together with <code class="docutils literal notranslate"><span class="pre">max_running_requests</span></code>.</p>
-<p>Intel XPU, CPU and Apple MPS decode synchronously by default. For NPU defaults and configuration, see <a class="reference internal" href="#ascend-npu-baseline"><span class="std std-ref">Ascend NPU baseline</span></a>. To opt in on Intel GPUs, follow the <a class="reference internal" href="../get_started/installation_xpu.html#qwen3-tts-text-to-speech-single-xpu"><span class="std std-ref">Qwen3-TTS XPU recipe</span></a>.</p>
+<p>Intel XPU, CPU and Apple MPS decode synchronously by default. For NPU defaults and configuration, see Ascend NPU baseline. To opt in on Intel GPUs, follow the <a class="reference internal" href="../get_started/installation_xpu.html#qwen3-tts-text-to-speech-single-xpu"><span class="std std-ref">Qwen3-TTS XPU recipe</span></a>.</p>
 <p>Each follow-up batch sorts the stateful decoder’s cohorts (and rows within each) by playback deadline: the nearest cohort launches first and its nearest rows fill the first graph-sized group. Left-context decodes keep queue order. Follow-up workers also commit each in-flight cohort as soon as its decode finishes, checked at the top of the worker loop and before each launch, instead of at the next drain.</p>
 <p><strong>First-audio chunk ramp</strong></p>
 <p>For latency-sensitive deployments the early chunk schedule can be configured server-side with <code class="docutils literal notranslate"><span class="pre">stream_chunk_ramp</span></code> on the vocoder stage: entry <code class="docutils literal notranslate"><span class="pre">i</span></code> sizes streaming decode chunk <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">+</span> <span class="pre">1</span></code> in codec frames; past the ramp the steady stride takes over, so <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">4,</span> <span class="pre">8]</span></code> yields <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">-&gt;</span> <span class="pre">4</span> <span class="pre">-&gt;</span> <span class="pre">8</span> <span class="pre">-&gt;</span> <span class="pre">8</span> <span class="pre">-&gt;</span> <span class="pre">...</span></code>. Set it in a pipeline config:</p>
@@ -1307,7 +1280,6 @@ weights.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prerequisites">Prerequisites</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#server-configuration">Server Configuration</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ascend-npu-baseline">Ascend NPU Baseline</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deterministic-inference">Deterministic Inference</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#overload-admission-policy">Overload / admission policy</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#server-readiness">Server Readiness</a></li>
