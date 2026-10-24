@@ -238,7 +238,6 @@ Declare a memory fraction for every GPU stage, and match `tts_engine.engine.mem_
 ```bash
 sgl-omni serve \
   --model-path Qwen/Qwen3-TTS-12Hz-1.7B-Base \
-  --config examples/configs/qwen3_tts_1_7b.yaml \
   --preprocessing.process tts_frontend \
   --preprocessing.gpu 0 \
   --preprocessing.gpu_memory_fraction 0.05 \
