@@ -73,7 +73,7 @@ Graph capture and replay were validated on Ascend 910 with SGLang 0.5.21, PyTorc
 # 0.6B Base
 sgl-omni serve \
   --model-path Qwen/Qwen3-TTS-12Hz-0.6B-Base \
-    --config examples/configs/qwen3_tts_0_6b_npu.yaml \
+  --config examples/configs/qwen3_tts_0_6b_npu.yaml \
   --port 8000
 ```
 
@@ -145,6 +145,7 @@ Enable it with:
 ```bash
 sgl-omni serve \
   --model-path Qwen/Qwen3-TTS-12Hz-1.7B-Base \
+  --config examples/configs/qwen3_tts_1_7b.yaml \
   --tts_engine.factory.prefill_coalesce_requests 2 \
   --tts_engine.factory.prefill_coalesce_wait_ms 30 \
   --port 8000
