@@ -44,6 +44,14 @@ sgl-omni serve \
   --port 8000
 ```
 
+```bash
+# 1.7B
+sgl-omni serve \
+  --model-path Qwen/Qwen3-TTS-12Hz-1.7B-Base \
+  --config examples/configs/qwen3_tts_1_7b.yaml \
+  --port 8000
+```
+
 If you already have a pipeline config file, you can also pass `--config path/to/config.yaml`. When the config file contains `model_path`, `--model-path` is optional and can be used as an override.
 
 If your SGLang release supports serve backend plugins, the same server can be launched through the unified CLI:
@@ -118,23 +126,73 @@ Before reporting ready, the server sequentially runs one streaming warmup reques
 
 Set `SGLANG_OMNI_WARMUP_TIMEOUT` to limit each warmup request (seconds; default `600`), or use `--skip-server-warmup` to skip warmup.
 
-### Prefill CUDA Graphs
+### Prefill CUDA graphs
 
-Prefill processes the prompt before generation.
+Qwen3-TTS replays prefills as CUDA graphs. Base and CustomVoice use the full
+backend, VoiceDesign the breakable backend.
 
-| Setting | Meaning | Default |
+| Knob | Meaning | Default |
 |---|---|---|
-| `--tts_engine.engine.cuda_graph_backend_prefill` | Prefill graph backend: `full`, `breakable`, or `disabled` | `full` for Base and CustomVoice; `breakable` for VoiceDesign |
-| `--tts_engine.engine.cuda_graph_bs_prefill` | Prefill token counts to capture | A sequence from `1` to the chunked prefill size |
-| `--tts_engine.engine.cuda_graph_max_bs_prefill` | Maximum token count in that sequence | The chunked prefill size |
+| `--tts_engine.engine.cuda_graph_backend_prefill` | Prefill graph backend (`full`, `breakable` or `disabled`) | `full` on Base and CustomVoice, `breakable` on VoiceDesign |
+| `--tts_engine.engine.cuda_graph_bs_prefill` | Prefill token counts to capture | a ladder from `1` up to the chunked prefill size |
+| `--tts_engine.engine.cuda_graph_max_bs_prefill` | Cap for the ladder | the chunked prefill size |
 
-`full` captures the transformer and attention as one graph per token count and requires `fa3`, `fa4`, or `flashinfer`. `breakable` captures layer segments with attention between them. With other attention backends, Base and CustomVoice default to `breakable`; explicitly selecting `full` fails at startup.
+`full` captures the whole prefill transformer, attention included, as one
+graph per token count. `breakable` captures the layers in segments and runs
+attention between them. `full` needs the `fa3`, `fa4` or `flashinfer` attention
+backend. With another attention backend, Base and CustomVoice use `breakable`,
+and an explicit `full` fails at startup.
 
-On Hopper GPUs, the full graph defaults to `fa4` prefill attention sized for all running requests. Setting `--tts_engine.engine.attention_backend`, `--tts_engine.engine.prefill_attention_backend`, or an FP8 `--tts_engine.engine.kv_cache_dtype` overrides this behavior. Decode retains its own attention backend.
+On Hopper GPUs the full graph runs its prefill attention on `fa4` and holds every
+running request, unless you set `--tts_engine.engine.attention_backend`,
+`--tts_engine.engine.prefill_attention_backend` or an FP8
+`--tts_engine.engine.kv_cache_dtype`. Decode keeps its own attention backend.
 
-The capture sequence runs from `1` for cached prompts to the chunked prefill size, covering batched prefills. The server sets that size from GPU memory: 8192 tokens on an 80 GB GPU.
+The ladder reaches the chunked prefill size, which the server picks from the
+GPU's memory (8192 tokens on an 80 GB GPU), so prefills batched together under
+load still replay. It starts at `1` because a prompt that is already cached
+prefills a single token.
 
-Capture adds a few seconds to startup; disable it with `--tts_engine.engine.cuda_graph_backend_prefill disabled`. `cuda_graph_max_bs_prefill` rebuilds the capture sequence up to that cap; `cuda_graph_bs_prefill` supplies an explicit list, used unchanged.
+Opt out with `--tts_engine.engine.cuda_graph_backend_prefill disabled`. The
+default adds a few seconds of graph capture at startup. Setting
+`cuda_graph_max_bs_prefill` rebuilds the ladder up to the new cap, and declaring
+`cuda_graph_bs_prefill` yourself keeps your list as is.
+
+To change the ceiling, set `max_running_requests` and `max_queued_requests`
+together:
+
+```bash
+sgl-omni serve \
+  --model-path Qwen/Qwen3-TTS-12Hz-0.6B-Base \
+  --config examples/configs/qwen3_tts_0_6b.yaml \
+  --tts_engine.engine.max_running_requests 32 \
+  --tts_engine.engine.max_queued_requests 16 \
+  --port 8000
+```
+
+Stepped `--concurrencies` is a closed-loop client: it never holds more than
+N in-flight requests, so past-ceiling load is a burst that drains. Keep
+offered load above `max_running_requests + max_queued_requests` for a
+duration with open-loop sustained overshoot:
+
+```bash
+python -m benchmarks.eval.benchmark_tts_seedtts \
+  --generate-only --use-existing-server --stream \
+  --model Qwen/Qwen3-TTS-12Hz-0.6B-Base \
+  --port 8000 \
+  --max-running-requests 32 \
+  --max-queued-requests 16 \
+  --sustained-overshoot \
+  --overshoot-duration-s 10 \
+  --max-samples 64
+```
+
+Arrivals default to `2 × capacity` (`--request-rate` overrides). Stats are
+on successes only; artifacts land in `<output-dir>/overshoot/`.
+
+A closed-loop `--concurrencies 16,32,48,64` sweep is still available for
+comparing healthy vs past-ceiling points, but it does not hold overshoot. Each
+concurrency writes inspectable artifacts under `<output-dir>/c<N>/`.
 
 ### Prefill Admission Coalescing
 
@@ -267,6 +325,7 @@ Masking changes the generated output. To disable it:
 ```bash
 sgl-omni serve \
   --model-path Qwen/Qwen3-TTS-12Hz-1.7B-Base \
+  --config examples/configs/qwen3_tts_1_7b.yaml \
   --tts_engine.factory.leading_silence_mask_frames 0 \
   --port 8000
 ```
@@ -410,7 +469,7 @@ Start 1.7B CustomVoice:
 
 ```bash
 sgl-omni serve \
-  --model-path Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+  --model-path Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice \
   --port 8000
 ```
 
