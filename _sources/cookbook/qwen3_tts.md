@@ -40,7 +40,7 @@ Start the server with `sgl-omni serve`. Provide a model path and let `sglang-omn
 # 0.6B
 sgl-omni serve \
   --model-path Qwen/Qwen3-TTS-12Hz-0.6B-Base \
-  --host 0.0.0.0 \
+  --config examples/configs/qwen3_tts_0_6b.yaml \
   --port 8000
 ```
 
@@ -73,7 +73,7 @@ Graph capture and replay were validated on Ascend 910 with SGLang 0.5.21, PyTorc
 # 0.6B Base
 sgl-omni serve \
   --model-path Qwen/Qwen3-TTS-12Hz-0.6B-Base \
-  --host 0.0.0.0 \
+    --config examples/configs/qwen3_tts_0_6b_npu.yaml \
   --port 8000
 ```
 
@@ -179,6 +179,7 @@ Declare a memory fraction for every GPU stage, and match `tts_engine.engine.mem_
 ```bash
 sgl-omni serve \
   --model-path Qwen/Qwen3-TTS-12Hz-1.7B-Base \
+  --config examples/configs/qwen3_tts_1_7b.yaml \
   --preprocessing.process tts_frontend \
   --preprocessing.gpu 0 \
   --preprocessing.gpu_memory_fraction 0.05 \
