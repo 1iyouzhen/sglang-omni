@@ -52,43 +52,6 @@ sgl-omni serve \
   --port 8000
 ```
 
-If you already have a pipeline config file, you can also pass `--config path/to/config.yaml`. When the config file contains `model_path`, `--model-path` is optional and can be used as an override.
-
-If your SGLang release supports serve backend plugins, the same server can be launched through the unified CLI:
-
-```bash
-sglang serve Qwen/Qwen3-TTS-12Hz-0.6B-Base \
-  --model-type omni \
-  --port 8000
-```
-
-Config-only launches are also supported:
-
-```bash
-sglang serve --model-type omni --config path/to/config.yaml
-```
-
-Replace `0.6B` with `1.7B` in the model ID to use the larger checkpoint. Both entry points also apply to other hardware backends.
-
-
-### Ascend NPU Baseline
-
-The four NPU example configurations enable Talker graphs, asynchronous vocoder decoding, and incremental codec graphs. Custom NPU configurations default to synchronous decoding.
-
-Graph capture and replay were validated on Ascend 910 with SGLang 0.5.21, PyTorch 2.10.0, and torch_npu 2.10.0. The 0.6B Base configuration was validated at 16 concurrent requests; the other examples use `max_running_requests: 1`.
-
-```bash
-# 0.6B Base
-sgl-omni serve \
-  --model-path Qwen/Qwen3-TTS-12Hz-0.6B-Base \
-  --config examples/configs/qwen3_tts_0_6b_npu.yaml \
-  --port 8000
-```
-
-Disable Talker graphs with `--tts_engine.engine.disable_cuda_graph true`, vocoder graphs with `--vocoder.factory.incremental_codec_cuda_graph false`, or asynchronous decoding with `--vocoder.factory.async_decode false`.
-
-The 0.6B and 1.7B configurations use different `mem_fraction_static` values. Tune memory on the target NPU before increasing `max_running_requests` or vocoder batch limits from the single-request baseline.
-
 ### Deterministic Inference
 
 For byte-identical PCM across batch sizes with the same prompt, reference audio, and seed, enable deterministic inference in either Base checkpoint's pipeline YAML (disabled by default):
