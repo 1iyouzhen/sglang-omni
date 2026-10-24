@@ -469,6 +469,7 @@ Start 1.7B CustomVoice:
 ```bash
 sgl-omni serve \
   --model-path Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice \
+  --config examples/configs/qwen3_tts_1_7b_customvoice.yaml \
   --port 8000
 ```
 
