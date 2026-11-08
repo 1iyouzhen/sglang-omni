@@ -580,10 +580,8 @@
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#qwen3-omni-persistent-session-stages">Qwen3-Omni persistent session stages</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#speculative-decoding">Speculative Decoding</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#known-limitations">Known Limitations</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#speculative-decoding">Speculative Decoding</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#known-limitations">Known Limitations</a></li>
 </ul>
             </nav>
         </div>
@@ -1002,15 +1000,15 @@ sgl-omni<span class="w"> </span>serve<span class="w"> </span><span class="se">\<
 <li><p><strong>Speech output.</strong> Drafts do not support speech generation; use <code class="docutils literal notranslate"><span class="pre">--text-only</span></code>.</p></li>
 </ul>
 <p>Compare modes with matching workloads and prefix-cache conditions; measure TTFT, throughput, and accuracy for your workload.</p>
+</section>
 <section id="known-limitations">
-<h3>Known Limitations<a class="headerlink" href="#known-limitations" title="Link to this heading">#</a></h3>
+<h2>Known Limitations<a class="headerlink" href="#known-limitations" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><strong>Multiple videos must use the same sampled frame rate.</strong> The processor uses one rate for video timestamps.different rates return an invalid-input error.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">content</span></code> must be <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> when the query is entirely in <code class="docutils literal notranslate"><span class="pre">audios</span></code>, <code class="docutils literal notranslate"><span class="pre">videos</span></code>, or <code class="docutils literal notranslate"><span class="pre">images</span></code>.</strong> Otherwise, any text in <code class="docutils literal notranslate"><span class="pre">content</span></code> is processed too.</p></li>
 <li><p><strong>Colocated topology does not support <code class="docutils literal notranslate"><span class="pre">--thinker.tp_size</span> <span class="pre">2</span></code>.</strong> Startup raises a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>; use disaggregated topology for TP=2.</p></li>
 <li><p><strong>Context limits apply to prompt and output.</strong> The preprocessor rejects requests when prompt tokens meet or exceed <code class="docutils literal notranslate"><span class="pre">max_seq_len</span></code>, or when prompt tokens plus <code class="docutils literal notranslate"><span class="pre">max_new_tokens</span></code> meet or exceed it. Without both <code class="docutils literal notranslate"><span class="pre">--preprocessing.factory.max_seq_len</span></code> and <code class="docutils literal notranslate"><span class="pre">--thinker.factory.max_seq_len</span></code>, the limit is the thinker’s checkpoint context (65,536 tokens for Instruct); setting both lower caps it. The talker uses its checkpoint limit unless <code class="docutils literal notranslate"><span class="pre">--talker_ar.factory.max_seq_len</span></code> sets it. A long spoken prompt may leave too little room for <code class="docutils literal notranslate"><span class="pre">talker_max_new_tokens</span></code>, so audio can end before the text.</p></li>
 </ul>
-</section>
 </section>
 </section>
 
@@ -1069,10 +1067,8 @@ sgl-omni<span class="w"> </span>serve<span class="w"> </span><span class="se">\<
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#qwen3-omni-persistent-session-stages">Qwen3-Omni persistent session stages</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#speculative-decoding">Speculative Decoding</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#known-limitations">Known Limitations</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#speculative-decoding">Speculative Decoding</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#known-limitations">Known Limitations</a></li>
 </ul>
   </nav></div>
 
