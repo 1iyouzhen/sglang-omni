@@ -62,7 +62,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.2.0" />
-    <meta name="docbuild:last-update" content="Nov 09, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 11, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -679,7 +679,7 @@
 <h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
 <p>P99 values pool the packet deviations across all runs of one layout: P processes of S sessions each, every session streaming silence of 16 kHz PCM16 in 80 ms packets to the mock server, which replies to each packet with one audio delta, one text delta and one <code class="docutils literal notranslate"><span class="pre">sglang.unit.done</span></code>. Every session of every run here completed. The maximum is the median over runs of each run’s largest deviation, with the range in brackets. The unchanged client’s 90 s runs and the changed client’s 90 s runs were recorded hours apart, not interleaved.</p>
 <section id="s-sessions">
-<h3>90 s sessions<a class="headerlink" href="#s-sessions" title="Link to this heading">#</a></h3>
+<span id="90-s-sessions"></span><h3>90 s sessions<a class="headerlink" href="#s-sessions" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Layout</p></th>
@@ -750,7 +750,7 @@
 <p>Stalls over 100 ms in disk waits fell from 52 to 0. The remaining late packets have other causes. In 1 × 256 the process was running on its CPU through the stalls and used 0.92 cores, so one process has no headroom for 256 sessions. In 4 × 64 all 44 late packets fell at 90.2–90.3 s in one run, while the sessions of each process were ending, and the loop was waiting for the GIL.</p>
 </section>
 <section id="id1">
-<h3>30 s sessions<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<span id="30-s-sessions"></span><h3>30 s sessions<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Layout</p></th>
@@ -850,7 +850,7 @@
 </ul>
 </section>
 <section id="id2">
-<h3>Results<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<span id="results-1"></span><h3>Results<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">pacing_probe.py</span> <span class="pre">native-mock</span></code> serves the native protocol and streams 22.05 kHz audio back for every input unit, in bursts of <code class="docutils literal notranslate"><span class="pre">--burst-units</span></code> units; <code class="docutils literal notranslate"><span class="pre">record</span></code> drives <code class="docutils literal notranslate"><span class="pre">run_samples</span></code> with a synthetic dataset of 4 subsets, 20–60 s inputs and both variants of each sample. Each run records 2 × concurrency sessions. Host: 2 CPUs and 7 GB of memory shared by the mock, the recorder and its workers. P99 is the largest of the per-run p99 values.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -1112,7 +1112,7 @@ By SGLang-Omni Team
   
   <div class="footer-item">
     <p class="last-updated">
-  Last updated on Nov 09, 2026.
+  Last updated on Nov 11, 2026.
   <br/>
 </p>
   </div>

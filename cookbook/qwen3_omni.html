@@ -62,7 +62,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.2.0" />
-    <meta name="docbuild:last-update" content="Nov 09, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 11, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -615,7 +615,7 @@
 <p>For shared request examples, response formats, SSE clients, and error handling, see <a class="reference internal" href="../basic_usage/omni.html"><span class="std std-doc">Omni Model Usage</span></a>. This page documents Qwen3-Omni deployment, model-specific parameters, and realtime profiles.</p>
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
-<p>Install SGLang-Omni using the <a class="reference internal" href="../get_started/installation.html"><span class="std std-doc">installation guide</span></a>.</p>
+<p>Install <code class="docutils literal notranslate"><span class="pre">sglang-omni</span></code> using the <a class="reference internal" href="../get_started/installation.html"><span class="std std-doc">installation guide</span></a>.</p>
 </section>
 <section id="server-configuration">
 <h2>Server Configuration<a class="headerlink" href="#server-configuration" title="Link to this heading">#</a></h2>
@@ -872,7 +872,7 @@
 </section>
 </section>
 <section id="single-gpu-fp8-on-h100-h20">
-<h2>Single-GPU FP8 on H100/H20<a class="headerlink" href="#single-gpu-fp8-on-h100-h20" title="Link to this heading">#</a></h2>
+<span id="single-gpu-fp8-on-h100h20"></span><h2>Single-GPU FP8 on H100/H20<a class="headerlink" href="#single-gpu-fp8-on-h100-h20" title="Link to this heading">#</a></h2>
 <p>SGLang-Omni can also serve native FP8 Qwen3-Omni checkpoints. Native FP8 uses the checkpoint quantization config when loading the thinker and talker AR stages, while keeping the same Qwen3-Omni request format shown below.</p>
 <p>For one-GPU H100/H20 colocated launch, use the FP8 colocated config:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sgl-omni<span class="w"> </span>serve<span class="w"> </span><span class="se">\</span>
@@ -894,7 +894,7 @@
 </div>
 </section>
 <section id="single-gpu-autoround-int4-thinker-on-h100-h20">
-<h2>Single-GPU AutoRound INT4 Thinker on H100/H20<a class="headerlink" href="#single-gpu-autoround-int4-thinker-on-h100-h20" title="Link to this heading">#</a></h2>
+<span id="single-gpu-autoround-int4-thinker-on-h100h20"></span><h2>Single-GPU AutoRound INT4 Thinker on H100/H20<a class="headerlink" href="#single-gpu-autoround-int4-thinker-on-h100-h20" title="Link to this heading">#</a></h2>
 <p>SGLang-Omni also supports AutoRound INT4 quantized Qwen3-Omni checkpoints. AutoRound uses a 4-bit quantization scheme with group size 128, significantly reducing memory footprint compared to BF16 or FP8.</p>
 <p>The public AutoRound checkpoint quantizes the thinker transformer layers. In speech mode, the talker and code2wav stages load as BF16 from the same checkpoint. For one-GPU H100/H20 colocated launch, use the colocated config with the AutoRound checkpoint:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sgl-omni<span class="w"> </span>serve<span class="w"> </span><span class="se">\</span>
@@ -917,7 +917,7 @@
 <p>Before it reports ready, the server sends itself a chat request with a small image, one second of audio and a short instruction (text and audio output in speech mode, text output in text-only mode, at most 8 new tokens from each stage that generates tokens), once per replica of its most replicated process, one after another, so that every replica serves one. <code class="docutils literal notranslate"><span class="pre">/health</span></code> returns 503 with status <code class="docutils literal notranslate"><span class="pre">starting</span></code> until these requests have passed through every stage, so the one-time kernel builds of that request path happen before the first user request. Inputs of other shapes, such as video or a large concurrent batch, can still build a kernel variant on first use. A failed warmup stops the server. <code class="docutils literal notranslate"><span class="pre">SGLANG_OMNI_WARMUP_TIMEOUT</span></code> (seconds, default 600) bounds each request, and <code class="docutils literal notranslate"><span class="pre">--skip-server-warmup</span></code> reports ready without them.</p>
 </section>
 <section id="input-output-modalities">
-<h2>Input / Output Modalities<a class="headerlink" href="#input-output-modalities" title="Link to this heading">#</a></h2>
+<span id="input--output-modalities"></span><h2>Input / Output Modalities<a class="headerlink" href="#input-output-modalities" title="Link to this heading">#</a></h2>
 <p>Qwen3-Omni accepts text, image, audio, and video input in both text-only and speech deployments. The <a class="reference internal" href="../basic_usage/omni.html#general-usage"><span class="std std-ref">shared request examples</span></a> cover image questions, spoken questions with images or video, and text-and-speech replies. To return audio, launch the speech pipeline; requesting audio on a text-only chat server returns text without an error. Realtime audio negotiation has a separate contract described below.</p>
 <section id="sampling-parameters">
 <h3>Sampling Parameters<a class="headerlink" href="#sampling-parameters" title="Link to this heading">#</a></h3>
@@ -1269,7 +1269,7 @@ By SGLang-Omni Team
   
   <div class="footer-item">
     <p class="last-updated">
-  Last updated on Nov 09, 2026.
+  Last updated on Nov 11, 2026.
   <br/>
 </p>
   </div>
