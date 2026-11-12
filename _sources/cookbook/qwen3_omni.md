@@ -312,86 +312,11 @@ For HTTP and SSE errors, see [Known Limitations](../basic_usage/omni.md#known-li
 
 ## Realtime Speech with Server-Side Turn Detection
 
-This section uses the standard speech pipeline with `--enable-realtime`. Its `session.update` format differs from the [persistent session profile](#qwen3-omni-persistent-session-stages); use the client and configuration for the profile you launched.
-
-The speech pipeline can stream spoken responses over `/v1/realtime`. Enable the WebSocket endpoint on the standard speech pipeline:
-
-```bash
-sgl-omni serve \
-  --model-path Qwen/Qwen3-Omni-30B-A3B-Instruct \
-  --port 8008 \
-  --enable-realtime
-```
-
-After connecting to `ws://localhost:8008/v1/realtime`, request text and audio output:
-
-```json
-{
-  "type": "session.update",
-  "session": {
-    "modalities": ["text", "audio"],
-    "input_audio_format": "pcm16",
-    "output_audio_format": "pcm16",
-    "turn_detection": {
-      "type": "semantic_vad",
-      "eagerness": "medium"
-    }
-  }
-}
-```
-
-Stream mono 16 kHz PCM16 input with `input_audio_buffer.append`. Turn detection auto-commits each utterance and starts generation. Check `session.created.capabilities.turn_detection` before requesting `semantic_vad` — older servers only support `server_vad`.
-
-`server_vad` (default) ends a turn after a fixed silence duration. `semantic_vad` adds a GPU Smart Turn v3.2 model on top of Silero speech detection, so a natural mid-thought pause doesn't end the turn early. `eagerness` (`low`/`medium`/`high`, default `medium`) trades latency for patience; `silence_duration_ms` only applies to `server_vad`.
-
-To enable `semantic_vad`, provision the BSD-2 licensed [Smart Turn v3.2](https://huggingface.co/pipecat-ai/smart-turn-v3) `smart-turn-v3.2-gpu.onnx` model and set `SGLANG_OMNI_SMART_TURN_MODEL_PATH` to its path (file or containing directory). The server never downloads it and verifies its SHA-256 on load. If the model is missing or invalid, the endpoint still works — semantic requests just fall back to `server_vad`.
-
-On the Session graph (`examples/qwen3_omni/session_h200.yaml`), `semantic_vad` is a node: declare `turn_detection: {stages: [turn_detection], inputs: ["input:pcm16", "input:session", "vad:session"]}` beside `vad`, let `dialog` read `turn_detection:session` in place of `vad:session` and publish `turn_detection: [session]` in place of `vad: [session]`; the stage loads the model from `pipecat-ai/smart-turn-v3` unless `factory.model_path` names a local copy. See {ref}`Turn detection node <turn-detection-node>`.
-
-Text arrives in `response.text.delta` events; spoken output arrives as base64-encoded mono 24 kHz PCM16 in `response.audio.delta` events, followed by `response.audio.done` and `response.done`.
-
-Audio output is opt-in: sessions remain text-only unless both modalities are requested. A thinker-only server rejects audio negotiation because it has no `code2wav` stage.
-
-For text-and-audio sessions, server-owned barge-in is enabled by default. When the active turn detector emits `input_audio_buffer.speech_started`, the active response is cancelled with reason `turn_detected`; its user transcription still completes and enters conversation history before the next queued turn runs. Cancelled assistant output is not added to conversation history.
-
-Clients must stop buffered playback on `speech_started` and reject every later `response.audio.delta` for that response until its `response.done`. If speech starts before `response.created`, retain a pending-interruption flag and reject the response when its ID arrives. Automatic barge-in ends with `response.done.status="cancelled"` and reason `turn_detected`; explicit `response.cancel` uses reason `client_cancelled`.
-
-If assistant audio has already been scheduled for playback, the client must also send `conversation.item.truncate` with the assistant `item_id` from `response.audio.delta`, `content_index: 0`, and the played duration in `audio_end_ms`. The server replies with `conversation.item.truncated` and removes that assistant item from conversation history. The whole assistant transcript is removed because the endpoint cannot align text with played audio.
-
-Set `turn_detection.interrupt_response` to `false` in `session.update` to opt out. Partial updates preserve the active detector type and settings, so clients can change interruption behavior without dropping semantic VAD or its eagerness. Changing detector behavior rebuilds the detector and clears pending input audio; `interrupt_response` changes independently. Text-only responses are not interrupted automatically.
-
-The browser example in `playground/qwen-omni/realtime` captures microphone input, negotiates turn-detection support per connection, and lets the user select text-only output or text plus streamed PCM16 audio playback.
+The speech pipeline also streams spoken responses over `/v1/realtime` with `--enable-realtime`, with server-side turn detection and barge-in. Its protocol is in {ref}`Realtime on the speech pipeline <realtime-on-the-speech-pipeline>`; the Session graph that most realtime clients use is in [Turn-Based: Qwen3-Omni](../developer_reference/full_duplex_guide.md#turn-based-qwen3-omni).
 
 ## Qwen3-Omni persistent session stages
 
-This profile retains session KV state and uses the shared session protocol, unlike the standard speech pipeline above. Follow the [Session Graph](../developer_reference/full_duplex_guide.md#session-graph) protocol for event IDs, audio packet sequence metadata, and session configuration.
-
-The Session API profile runs Qwen3-Omni as a real-time voice assistant. VAD detects speech; `dialog` groups audio from `speech.started` to `speech.stopped` (or client `commit`) into a user turn, and `qwen_omni` answers it:
-
-```text
-preprocessing -> image_encoder -> audio_encoder -> thinker -> talker_ar -> code2wav
-```
-
-```bash
-sgl-omni serve --config examples/qwen3_omni/session_h200.yaml --enable-realtime --port 8765
-```
-
-`examples/qwen3_omni/session_h200.yaml` sets H200-specific stage memory fractions and `max_sessions`; configure both for each device, with explicit fractions for colocated stages. Each session retains up to 32,768 thinker KV tokens. The thinker logs its KV pool at startup (`KV Cache is allocated. ... #tokens`); divide that capacity by 32,768 to get the session count. With these fractions on one H200, the pool holds 555,988 tokens (16 sessions). Encoders run in separate processes with their own memory fractions, so thinker `encoder_mem_reserve` is 0.
-
-Thinker and talker retain each session's KV and request row between units, so the next unit reuses that row. By default, a prefill batch admits the next unit from every waiting session, even if there are fewer free rows. With both `continuation_aware_admission` flags set to `false`, SGLang credits a held row once its unit enters the batch; only the first waiting unit then needs a free row. KV stays cached and rows are reused.
-
-Sessions accept 16 kHz PCM16 audio and camera frames. A turn ends at `speech.stopped`, `commit`, or end of input; replies stream as `text_delta` and 24 kHz `pcm16` with `turn.queued`, `turn.started`, and `turn.done`. `turn.done` arrives after reply audio leaves the server. The model processes each utterance with the conversation so far and does not listen while speaking. Speech during a reply or an `interrupt` stops it and emits `turn.interrupted`. `max_utterance_seconds` (60) limits utterance length; `max_queued_turns` (8) limits finished turns waiting behind the active reply. Exceeding either ends the session.
-
-Send camera frames with `sglang.input_image.append` (as for [MiniCPM-o](minicpm_o.md)), using a base64 JPEG or PNG in `image` and its timeline position in `sglang.t_ms`. The newest `max_utterance_frames` (4) frames in each utterance go to the model; each consumes thinker context for the rest of the session.
-
-`instructions` can be set at session start and changed with `configure` until the first user turn; after that, open a new session to change them. Sampling can be changed through `configure` at any time; updates made there or through `sglang.sampling` in later `/v1/realtime` `session.update` calls apply from the next unit. The thinker defaults to greedy decoding (`max_new_tokens` 2048 per turn); the talker uses checkpoint `generation_config.json` defaults. Realtime accepts `instructions` only in the first `session.update`; `session.updated` reports `supports_sampling_updates: true` and `supports_instruction_updates: false`.
-
-Current limits:
-
-- No user transcript is published.
-- After interruption, send `truncate` with the milliseconds of reply audio heard (`conversation.item.truncate`); history keeps only that portion. Without it, history retains the full reply generated so far.
-
-See [Session Graph](../developer_reference/full_duplex_guide.md#session-graph) for the shared routing and delivery contracts.
+The session profile serves Qwen3-Omni as a turn-based realtime voice assistant on `/v1/realtime`: a VAD node ends each user turn and the model answers it with the conversation so far. Launching on H100 or H200, settings, the protocol and benchmarking are in [Full-Duplex Guide](../developer_reference/full_duplex_guide.md#turn-based-qwen3-omni).
 
 ## Speculative Decoding
 
