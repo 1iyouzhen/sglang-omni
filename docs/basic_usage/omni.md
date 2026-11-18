@@ -72,8 +72,8 @@ print(response.choices[0].message.content)
 
 Media reaches the model in two ways, and a request may use either one:
 
-- Top-level `images`, `audios`, and `videos` lists, each entry a local path visible to the server, an HTTP URL, or a data URL.
-- OpenAI content parts inside a message: `text`, `image_url`, `video_url`, `audio_url`, and `input_audio`, where `input_audio` carries base64 `wav` or `mp3` data.
+- Top-level `images`, `audios` and `videos` lists, each entry a local path visible to the server, an HTTP URL, or a data URL.
+- OpenAI content parts inside a message: `text`, `image_url`, `video_url`, `audio_url` and `input_audio`, where `input_audio` carries base64 `wav` or `mp3` data.
 
 ```json
 {
