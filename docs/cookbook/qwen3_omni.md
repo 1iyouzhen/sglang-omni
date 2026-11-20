@@ -2,7 +2,15 @@
 
 [Qwen3-Omni](https://huggingface.co/Qwen/Qwen3-Omni-30B-A3B-Instruct) accepts text, images, audio, and video, and can return text alone or with audio. Use the generator for a hardware-specific launch command, then check the tables for supported configurations.
 
-For shared request examples, response formats, SSE clients, and error handling, see [Omni Model Usage](../basic_usage/omni.md). This page documents Qwen3-Omni deployment, model-specific parameters, and realtime profiles.
+
+<div align="center">
+  <img src="../_static/image/qwen3-omni-architecture.png" alt="qwen3-omni-architecture.png" width="800">
+  <p>Qwen3-Omni architecture</p>
+</div>
+
+Adapted from the Model Architecture figure in the [Qwen3-Omni technical report](https://arxiv.org/pdf/2509.17765v1).
+
+For shared request examples, response formats, SSE clients and error handling, see [Omni Model Usage](../basic_usage/omni.md). This page documents Qwen3-Omni deployment, model-specific parameters, and realtime profiles.
 
 ## Prerequisites
 
