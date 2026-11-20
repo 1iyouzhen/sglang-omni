@@ -64,7 +64,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.2.0" />
-    <meta name="docbuild:last-update" content="Nov 19, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 20, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -645,7 +645,12 @@
   <section class="tex2jax_ignore mathjax_ignore" id="qwen3-omni">
 <h1>Qwen3-Omni<a class="headerlink" href="#qwen3-omni" title="Link to this heading">#</a></h1>
 <p><a class="reference external" href="https://huggingface.co/Qwen/Qwen3-Omni-30B-A3B-Instruct">Qwen3-Omni</a> accepts text, images, audio, and video, and can return text alone or with audio. Use the generator for a hardware-specific launch command, then check the tables for supported configurations.</p>
-<p>For shared request examples, response formats, SSE clients, and error handling, see <a class="reference internal" href="../basic_usage/omni.html"><span class="std std-doc">Omni Model Usage</span></a>. This page documents Qwen3-Omni deployment, model-specific parameters, and realtime profiles.</p>
+<div align="center">
+  <img src="../_static/image/qwen3-omni-architecture.png" alt="qwen3-omni-architecture.png" width="800">
+  <p>Qwen3-Omni architecture</p>
+</div>
+<p>Adapted from the Model Architecture figure in the <a class="reference external" href="https://arxiv.org/pdf/2509.17765v1">Qwen3-Omni technical report</a>.</p>
+<p>For shared request examples, response formats, SSE clients and error handling, see <a class="reference internal" href="../basic_usage/omni.html"><span class="std std-doc">Omni Model Usage</span></a>. This page documents Qwen3-Omni deployment, model-specific parameters, and realtime profiles.</p>
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h2>
 <p>Install <code class="docutils literal notranslate"><span class="pre">sglang-omni</span></code> using the <a class="reference internal" href="../get_started/installation.html"><span class="std std-doc">installation guide</span></a>.</p>
@@ -1252,7 +1257,7 @@ By SGLang-Omni Team
   
   <div class="footer-item">
     <p class="last-updated">
-  Last updated on Nov 19, 2026.
+  Last updated on Nov 20, 2026.
   <br/>
 </p>
   </div>
