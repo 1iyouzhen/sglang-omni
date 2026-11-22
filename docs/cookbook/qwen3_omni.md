@@ -12,13 +12,9 @@ Adapted from the Model Architecture figure in the [Qwen3-Omni technical report](
 
 For shared request examples, response formats, SSE clients and error handling, see [Omni Model Usage](../basic_usage/omni.md). This page documents Qwen3-Omni deployment, model-specific parameters, and realtime profiles.
 
-## Prerequisites
+## Quick start
 
-Install `sglang-omni` using the [installation guide](../get_started/installation.md).
-
-## Server Configuration
-
-Use the selector below to generate the exact launch command for your configuration.
+Install `sglang-omni` by following the  [installation guide](../get_started/installation.md), then use the configuration selector below to generate a launch command tailored to your environment.
 
 ```{raw} html
 <div id="sgl-server-gen-mount"></div>
